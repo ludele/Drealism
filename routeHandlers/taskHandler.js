@@ -1,5 +1,9 @@
 const utils = require("../utils.js");
 
-exports.handleTaskRoute = async function (url, pathSegments, db, request, response) {
+exports.getTasks = async function (url, pathSegments, db, request, response) {
+   console.log("test");
+}
+
+exports.createTasks = async function (url, pathSegments, db, request, response) {
    console.log("test");
 }
