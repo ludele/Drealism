@@ -26,8 +26,6 @@ exports.handleRoute = async function (url, pathSegments, db, request, response) 
       return;
    }
 
-   utils.statusCodeResponse(response, 404, "404 Not Found", "text/plain");
-
    let seg = pathSegments.shift()
    switch (seg) {
       case "categories":

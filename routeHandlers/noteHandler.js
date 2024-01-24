@@ -1,16 +1,21 @@
 const utils = require("../utils.js");
 const { v4: uuidv4 } = require('uuid');
+const databaseName = "drealism";
+const collectionName = "notes";
 
 exports.getNotes = async function (url, pathSegments, db, request, response) {
    try {
-      const notes = await utils.retrieveFromDatabase("drealism", "notes");
+      console.log("Fetching notes from the database...");
+      const notes = await utils.retrieveFromDatabase(databaseName, collectionName);
+      
+      console.log("Retrieved notes:", notes);
 
       utils.statusCodeResponse(response, 200, JSON.stringify(notes), "application/json");
-  } catch (error) {
+   } catch (error) {
       console.error("Error retrieving notes:", error);
       utils.statusCodeResponse(response, 500, "Internal Server Error", "text/plain");
-  }
-}
+   }
+};
 
 exports.createNotes = async function (url, pathSegments, db, request, response) {
     try {
@@ -74,4 +79,3 @@ exports.deleteNotes = async function (url, pathSegments, db, request, response) 
        utils.statusCodeResponse(response, 500, "Internal Server Error", "text/plain");
    }
 };
-
