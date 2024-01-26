@@ -39,6 +39,7 @@ exports.createTasks = async function (url, pathSegments, db, request, response) 
         console.error("Error creating task:", error);
         utils.statusCodeResponse(response, 500, "Internal Server Error", "text/plain");
     }
+   utils.closeDatabaseConnection();
 };
 
 exports.updateTasks = async function (url, pathSegments, db, request, response) {
@@ -60,6 +61,7 @@ exports.updateTasks = async function (url, pathSegments, db, request, response) 
        console.error("Error updating task:", error);
        utils.statusCodeResponse(response, 500, "Internal Server Error", "text/plain");
    }
+   utils.closeDatabaseConnection();
 };
 
 exports.deleteTasks = async function (url, pathSegments, db, request, response) {
@@ -73,4 +75,5 @@ exports.deleteTasks = async function (url, pathSegments, db, request, response) 
        console.error("Error deleting task:", error);
        utils.statusCodeResponse(response, 500, "Internal Server Error", "text/plain");
    }
+   utils.closeDatabaseConnection();
 };

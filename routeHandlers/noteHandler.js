@@ -3,7 +3,7 @@
 const utils = require("../utils.js");
 const collectionName = "notes";
 
-exports.getNotes = async function (url, pathSegments, db, request, response) {
+exports.getNotes = async function (url, pathSegments, request, response) {
    try {
       console.log("Fetching notes from the database...");
       const notes = await utils.retrieveFromDatabase("drealism", collectionName);
@@ -16,7 +16,7 @@ exports.getNotes = async function (url, pathSegments, db, request, response) {
    }
 };
 
-exports.createNotes = async function (url, pathSegments, db, request, response) {
+exports.createNotes = async function (url, pathSegments, request, response) {
     try {
         const requestBody = await utils.getBody(request);
         const noteData = JSON.parse(requestBody);
@@ -44,7 +44,7 @@ exports.createNotes = async function (url, pathSegments, db, request, response) 
     }
 };
 
-exports.updateNotes = async function (url, pathSegments, db, request, response) {
+exports.updateNotes = async function (url, pathSegments, request, response) {
    try {
        const noteId = pathSegments[1];
 
@@ -66,7 +66,7 @@ exports.updateNotes = async function (url, pathSegments, db, request, response) 
    }
 };
 
-exports.deleteNotes = async function (url, pathSegments, db, request, response) {
+exports.deleteNotes = async function (url, pathSegments, request, response) {
    try {
        const noteId = pathSegments[1];
 

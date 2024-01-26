@@ -1,16 +1,14 @@
 const http = require("http");
-const MongoClient = require("mongodb").MongoClient;
-
 const port = 3000;
+
+const utils = require("./utils.js");
 
 let staticFileServer = require("./staticFileServer")
 let routeHandler = require("./routeHandler")
 
 async function handleRequest(request, response) {
 
-   let mongoConn = await MongoClient.connect("mongodb://127.0.0.1:27017")
-   let db = mongoConn.db("drealism")
-
+   await utils.connectToDatabase("drealism");
    let url = new URL(request.url, "https://" + request.headers.host);
    let path = url.pathname;
    let pathSegments = path.split("/").filter(function (element) {
@@ -23,10 +21,16 @@ async function handleRequest(request, response) {
       return;
    }
 
-   routeHandler.handleRoute(url, pathSegments, db, request, response)
+   routeHandler.handleRoute(url, pathSegments, request, response)
 }
 
 const app = http.createServer(handleRequest);
+
+process.on('SIGINT', async () => {
+   console.log('Closing MongoDB Connection due to application exit');
+   await utils.closeDatabaseConnection();
+   process.exit(0);
+});
 
 app.listen(port, function () {
    console.log(`Listening to ${port}`);

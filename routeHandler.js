@@ -14,7 +14,7 @@ const searchHandler = require("./routeHandlers/searchHandler.js");
 const loginHandler = require("./routeHandlers/loginHandler.js");
 const staticFileServer = require("./staticFileServer.js");
 
-exports.handleRoute = async function (url, pathSegments, db, request, response) {
+exports.handleRoute = async function (url, pathSegments, request, response) {
 
    let title = "Drealism: Home page"
    let nav = "Navigation menu"
@@ -46,46 +46,46 @@ exports.handleRoute = async function (url, pathSegments, db, request, response) 
    switch (seg) {
       case "categories":
          if (request.method === "GET") {
-            categoryHandler.getCategories(url, pathSegments, db, request, response);
+            categoryHandler.getCategories(url, pathSegments, request, response);
          } else if (request.method === "POST") {
-            categoryHandler.createCategories(url, pathSegments, db, request, response);
+            categoryHandler.createCategories(url, pathSegments, request, response);
          }
          break;
       case "tags":
          if (request.method === "GET") {
-            tagHandler.getTags(url, pathSegments, db, request, response);
+            tagHandler.getTags(url, pathSegments, request, response);
          } else if (request.method === "POST") {
-            tagHandler.createTags(url, pathSegments, db, request, response);
+            tagHandler.createTags(url, pathSegments, request, response);
          }
          break;
       case "user":
-         userHandler.handleUserRoute(url, pathSegments, db, request, response);
+         userHandler.handleUserRoute(url, pathSegments, request, response);
          break;
       case "tasks":
          if (request.method === "GET") {
-            taskHandler.getTasks(url, pathSegments, db, request, response);
+            taskHandler.getTasks(url, pathSegments, request, response);
          } else if (request.method === "POST") {
-            taskHandler.createTasks(url, pathSegments, db, request, response);
+            taskHandler.createTasks(url, pathSegments, request, response);
          }
          break;
       case "search":
-         searchHandler.handleSearchRoute(url, pathSegments, db, request, response);
+         searchHandler.handleSearchRoute(url, pathSegments, request, response);
          break;
       case "login":
          if (request.method === "POST") {
-            loginHandler.handleLogin(url, pathSegments, db, request, response);
+            loginHandler.handleLogin(url, pathSegments, request, response);
          }
          break;
       case "logout":
          if (request.method === "POST") {
-            loginHandler.handleLogout(url, pathSegments, db, request, response);
+            loginHandler.handleLogout(url, pathSegments, request, response);
          }
          break;
       case "notes":
          if (request.method === "GET") {
-            noteHandler.getNotes(url, pathSegments, db, request, response);
+            noteHandler.getNotes(url, pathSegments, request, response);
          } else if (request.method === "POST") {
-            noteHandler.createNotes(url, pathSegments, db, request, response);
+            noteHandler.createNotes(url, pathSegments, request, response);
          }
          break;
    }
