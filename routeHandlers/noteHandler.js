@@ -1,13 +1,12 @@
+// noteHandler.js
+
 const utils = require("../utils.js");
-const { v4: uuidv4 } = require('uuid');
-const databaseName = "drealism";
 const collectionName = "notes";
 
 exports.getNotes = async function (url, pathSegments, db, request, response) {
    try {
       console.log("Fetching notes from the database...");
-      const notes = await utils.retrieveFromDatabase(databaseName, collectionName);
-      
+      const notes = await utils.retrieveFromDatabase("drealism", collectionName);
       console.log("Retrieved notes:", notes);
 
       utils.statusCodeResponse(response, 200, JSON.stringify(notes), "application/json");
@@ -30,7 +29,7 @@ exports.createNotes = async function (url, pathSegments, db, request, response) 
         // const user = getUser();
         // noteData.userId = getUser();
         
-        noteData.noteId = uuidv4();
+        noteData.noteId = utils.generateCustomId();
 
         const currentDate = new Date();
         noteData.date = currentDate.toISOString().split('T')[0];

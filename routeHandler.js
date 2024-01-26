@@ -1,3 +1,4 @@
+
 const fs = require("fs").promises;
 const path = require("path");
 const utils = require("./utils.js");
@@ -15,10 +16,25 @@ const staticFileServer = require("./staticFileServer.js");
 
 exports.handleRoute = async function (url, pathSegments, db, request, response) {
 
+   let title = "Drealism: Home page"
+   let nav = "Navigation menu"
+   let content = "Content"
+
    if (pathSegments.length === 0) {
-      let template = (await fs.readFile(templatePath)).toString()
-      utils.statusCodeResponse(response, 200, template, "text/html")
-      return
+      try {
+         const templatePlaceholders = {
+            title: `${title}`,
+            nav: `${nav}`,
+            content: `${content}`, 
+         };
+
+         await utils.applyTemplate(templatePath, templatePlaceholders, response);
+
+         return;
+      } catch (error) {
+         console.error("Error applying the template:", error);
+         return;
+      }
    }
 
    if (pathSegments[0] === "static" && request.method === "GET") {

@@ -2,7 +2,10 @@
 // Contains general functionality, used in various parts of the code-base.
 const { MongoClient } = require('mongodb');
 
-const uri = "mongodb://127.0.0.1:27017";
+const fs = require("fs").promises;
+const databaseName = "drealism"
+const uri = `mongodb://127.0.0.1:27017/${databaseName}`;
+
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 let db;
 
@@ -10,6 +13,12 @@ function statusCodeResponse(response, code, value, type) {
     response.writeHead(code, { 'Content-Type': `${type}` });
     response.write(value);
     response.end();
+}
+
+function generateCustomId() {
+    const timestamp = Date.now().toString(36);
+    const randomPart = Math.random().toString(36).substring(2, 15);
+    return timestamp + randomPart;
 }
 
 async function getBody(request) {
@@ -33,28 +42,27 @@ async function getBody(request) {
             }
         });
     });
-
 }
 
 async function connectToDatabase(databaseName) {
     try {
-       if (!client || !client.topology || !client.topology.isConnected()) {
-          await client.connect();
-       }
-       console.log("Connected to MongoDB");
-       db = client.db(databaseName);
-       return db;
+        if (!client || !client.topology || !client.topology.isConnected()) {
+            await client.connect();
+        }
+        console.log("Connected to MongoDB");
+        db = client.db(databaseName);
+        return db;
     } catch (error) {
-       console.error("Error connecting to MongoDB:", error);
-       throw error;
+        console.error("Error connecting to MongoDB:", error);
+        throw error;
     }
- }
- 
- 
- function closeDatabaseConnection() {
+}
+
+
+function closeDatabaseConnection() {
     client.close();
     console.log("Closed MongoDB connection");
-} 
+}
 
 async function saveToDatabase(collectionName, data) {
     try {
@@ -89,7 +97,7 @@ async function retrieveFromDatabase(databaseName, collectionName, query = {}) {
     }
 }
 
-async function replacePlaceholdersByDictionary(template, placeholders) {
+async function replaceTemplatePlaceholders(template, placeholders) {
     return template.replace(/%\w+%/g, match => {
         const placeholderKey = match.slice(1, -1);
         const replacement = placeholders[placeholderKey] || match;
@@ -148,13 +156,30 @@ async function sessionMiddleware(request, response, next) {
     next();
 }
 
+async function applyTemplate(templatePath, placeholders, response) {
+    try {
+        let template = (await fs.readFile(templatePath)).toString();
+
+        const replacedTemplate = await replaceTemplatePlaceholders(template, placeholders);
+
+        statusCodeResponse(response, 200, replacedTemplate, "text/html");
+        return;
+    } catch (error) {
+        console.error("Error reading the template:", error);
+        statusCodeResponse(response, 500, "Internal Server Error", "text/plain");
+        return;
+    }
+}
+
 module.exports = {
     statusCodeResponse,
     getBody,
     saveToDatabase,
     retrieveFromDatabase,
-    replacePlaceholdersByDictionary,
+    replaceTemplatePlaceholders,
     updateInDatabase,
     sessionMiddleware,
+    generateCustomId,
+    applyTemplate,
     removeFromDatabase
 };
