@@ -3,7 +3,7 @@
 const utils = require("../utils.js");
 const collectionName = "tasks";
 
-exports.getTasks = async function (url, pathSegments, db, request, response) {
+exports.getTasks = async function (url, pathSegments, request, response) {
    try {
       console.log("Fetching tasks from the database...");
       const tasks = await utils.retrieveFromDatabase("your_database_name", collectionName);
@@ -14,9 +14,10 @@ exports.getTasks = async function (url, pathSegments, db, request, response) {
       console.error("Error retrieving tasks:", error);
       utils.statusCodeResponse(response, 500, "Internal Server Error", "text/plain");
    }
+   utils.closeDatabaseConnection();
 };
 
-exports.createTasks = async function (url, pathSegments, db, request, response) {
+exports.createTasks = async function (url, pathSegments, request, response) {
     try {
         const requestBody = await utils.getBody(request);
         const taskData = JSON.parse(requestBody);
@@ -42,7 +43,7 @@ exports.createTasks = async function (url, pathSegments, db, request, response) 
    utils.closeDatabaseConnection();
 };
 
-exports.updateTasks = async function (url, pathSegments, db, request, response) {
+exports.updateTasks = async function (url, pathSegments, request, response) {
    try {
        const taskId = pathSegments[1];
 
@@ -64,7 +65,7 @@ exports.updateTasks = async function (url, pathSegments, db, request, response) 
    utils.closeDatabaseConnection();
 };
 
-exports.deleteTasks = async function (url, pathSegments, db, request, response) {
+exports.deleteTasks = async function (url, pathSegments, request, response) {
    try {
        const taskId = pathSegments[1];
 
