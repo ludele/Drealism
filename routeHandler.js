@@ -72,12 +72,12 @@ exports.handleRoute = async function (url, pathSegments, request, response) {
          searchHandler.handleSearchRoute(url, pathSegments, request, response);
          break;
       case "login":
-         if (request.method === "POST") {
+         if (request.method === "GET") {
             loginHandler.handleLogin(url, pathSegments, request, response);
          }
          break;
       case "logout":
-         if (request.method === "POST") {
+         if (request.method === "GET") {
             loginHandler.handleLogout(url, pathSegments, request, response);
          }
          break;

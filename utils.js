@@ -180,6 +180,23 @@ function sanitizeInput(input) {
         .replace(/'/g, '&#39;');
 }
 
+function generateDynamicForm(fields) {
+    let formHTML = '<form action="/user" method="post">';
+  
+    fields.forEach((field) => {
+      formHTML += `
+        <div>
+          <label for="${field.name}">${field.label}</label>
+          <input type="${field.type}" name="${field.name}" placeholder="${field.placeholder}">
+        </div>
+      `;
+    });
+  
+    formHTML += '<button type="submit">Submit</button></form>';
+  
+    return formHTML;
+  }  
+
 module.exports = {
     statusCodeResponse,
     getBody,
@@ -193,5 +210,6 @@ module.exports = {
     generateCustomId,
     applyTemplate,
     removeFromDatabase,
+    generateDynamicForm,
     sanitizeInput
 };
