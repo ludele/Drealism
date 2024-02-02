@@ -1,26 +1,49 @@
 // utils.js 
 // Contains general functionality, used in various parts of the code-base.
-const { MongoClient } = require('mongodb');
+const { IncomingMessage, ServerResponse } = require('http');
+const { MongoClient, Int32 } = require('mongodb');
+const internal = require('stream');
 
 const fs = require("fs").promises;
 const databaseName = "drealism"
 const uri = `mongodb://127.0.0.1:27017/${databaseName}`;
 
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+const client = new MongoClient(uri);
 let db;
 
+/**
+ * 
+ * Function to effectivise the write(head) functionality in the code, to reduce rewrittes.
+ * 
+ * @param {IncomingMessage} response 
+ * @param {any} code - The response code used by the statusCodeResponse-function (can be int or string)
+ * @param {String} value - 
+ * @param {String} type 
+ */
 function statusCodeResponse(response, code, value, type) {
     response.writeHead(code, { 'Content-Type': `${type}` });
     response.write(value);
     response.end();
 }
 
+/**
+ * 
+ * @returns {String} - Id containing the time of creation, making dupicate id's impossible.\
+ * RandomPart containing a randomly generated string. These are merged.
+ */
 function generateCustomId() {
     const timestamp = Date.now().toString(36);
     const randomPart = Math.random().toString(36).substring(2, 15);
     return timestamp + randomPart;
 }
 
+/**
+ * Function to asynchronously be able to able to add data to a chunk\
+ * using promises.
+ * 
+ * @param {ServerResponse} request 
+ * @returns {promise<void>}
+ */
 async function getBody(request) {
     return new Promise(async function (resolve, reject) {
         let chunks = [];
@@ -44,6 +67,11 @@ async function getBody(request) {
     });
 }
 
+/**
+ * 
+ * @param {String} databaseName 
+ * @returns {promise<void>}
+ */
 async function connectToDatabase(databaseName) {
     try {
         if (!client || !client.topology || !client.topology.isConnected()) {
@@ -58,12 +86,19 @@ async function connectToDatabase(databaseName) {
     }
 }
 
-
+/**
+ * Function to eventually close the connection to the MongoDB-server.
+ */
 function closeDatabaseConnection() {
     client.close();
     console.log("Closed MongoDB connection");
 }
 
+/**
+ * 
+ * @param {String} collectionName 
+ * @param {any} data 
+ */
 async function saveToDatabase(collectionName, data) {
     try {
         const db = await connectToDatabase();
@@ -81,7 +116,13 @@ async function saveToDatabase(collectionName, data) {
         throw error;
     }
 }
-
+/**
+ * 
+ * @param {String} databaseName 
+ * @param {String} collectionName 
+ * @param {?} query 
+ * @returns 
+ */
 async function retrieveFromDatabase(databaseName, collectionName, query = {}) {
     try {
         const db = await connectToDatabase();
@@ -97,6 +138,12 @@ async function retrieveFromDatabase(databaseName, collectionName, query = {}) {
     }
 }
 
+/**
+ * 
+ * @param {String} template 
+ * @param {String} placeholders 
+ * @returns 
+ */
 async function replaceTemplatePlaceholders(template, placeholders) {
     return template.replace(/%\w+%/g, match => {
         const placeholderKey = match.slice(1, -1);
@@ -105,6 +152,12 @@ async function replaceTemplatePlaceholders(template, placeholders) {
     });
 }
 
+/**
+ * 
+ * @param {String} collectionName 
+ * @param {String} filter 
+ * @param {any} updatedData 
+ */
 async function updateInDatabase(collectionName, filter, updatedData) {
     try {
         const db = await connectToDatabase();
@@ -118,7 +171,11 @@ async function updateInDatabase(collectionName, filter, updatedData) {
         throw error;
     }
 }
-
+/**
+ * 
+ * @param {String} collectionName 
+ * @param {String} filter 
+ */
 async function removeFromDatabase(collectionName, filter) {
     try {
         const db = await connectToDatabase();

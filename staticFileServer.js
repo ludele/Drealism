@@ -19,7 +19,6 @@ exports.handleStaticFileRoute = async function (pathSegments, response) {
 
    try {
       console.log("Reading file:", path);
-      // Read the content of the file.
       fileContents = await fs.readFile(path, "utf-8");
    } catch (err) {
       console.error("Error reading the file:", err);
