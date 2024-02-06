@@ -3,6 +3,17 @@
 const utils = require("../utils.js");
 const collectionName = "notes";
 
+const routes = [
+    { name: "Notes", url: "/notes" },
+    { name: "Tasks", url: "/tasks" },
+    { name: "Categories", url: "/categories" },
+    { name: "Tags", url: "/tags" },
+    { name: "Search", url: "/search" },
+    { name: "User", url: "/user" },
+    { name: "Login", url: "/login" },
+
+];
+
 /**
  * Fetches notes from the database and sends them as a JSON response.
  * 
@@ -15,18 +26,43 @@ const collectionName = "notes";
  * @returns {Promise<void>} - A promise that resolves after fetching and sending the notes.
  */ 
 exports.getNotes = async function (url, pathSegments, request, response) {
-   try {
-      console.log("Fetching notes from the database...");
-      const notes = await utils.retrieveFromDatabase("drealism", collectionName);
-      console.log("Retrieved notes:", notes);
+    try {
+        console.log("Fetching notes from the database...");
+        let notes = await utils.retrieveFromDatabase("drealism", collectionName);
+        console.log("Retrieved notes:", notes);
 
-      utils.statusCodeResponse(response, 200, JSON.stringify(notes), "application/json");
-   } catch (error) {
-      console.error("Error retrieving notes:", error);
-      utils.statusCodeResponse(response, 500, "Internal Server Error", "text/plain");
-   }
-};
+        // Sort notes by date (newest first)
+        notes.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+        // Prepare placeholders with title as a link and some content
+        // Adjust the URL to the note based on your application's routing
+        const placeholders = {
+            title: "Drealism: Notes",
+            nav:
+                `   <div class="header-box">
+                    ${utils.generateRouteList(routes)}
+                <div/>
+            `,
+            content: notes.map(note =>
+                `   <div>
+                    <li class="small-box">
+                        <a class="box" href="/notes/${note.noteId}">${note.title}</a>
+                        <p class="small-box">${note.content.substring(0, 100)}...</p> <!-- Showing a preview of the content -->
+                        <span class="small-box">${note.date} ${note.time}</span>
+                    </li>
+                <div/>
+            `
+            ).join('')
+        };
+
+        const templatePath = './templates/index.maru';
+
+        await utils.applyTemplate(templatePath, placeholders, response);
+    } catch (error) {
+        console.error("Error retrieving notes:", error);
+        utils.statusCodeResponse(response, 500, "Internal Server Error", "text/plain");
+    }
+}
 /**
  * Creates a new note with the data provided in the request body, saves it to the database,
  * and sends a response indicating the operation's success or failure.

@@ -254,6 +254,22 @@ function generateDynamicForm(fields) {
     return formHTML;
   }  
 
+
+/**
+ * Generates a list of routes as HTML list items.
+ * @param {Array} userRoutes - Array of objects, each containing 'name' and 'url' properties for the route.
+ * @returns {String} A string of HTML list items for each route.
+ */
+function generateRouteList(userRoutes) {
+    let lis = "";
+  
+    userRoutes.forEach((route) => {
+        lis += `<li class="header-box"><a href="${route.url}">${route.name}</a></li>`;
+    });
+  
+    return lis;
+}
+
 module.exports = {
     statusCodeResponse,
     getBody,
@@ -267,6 +283,7 @@ module.exports = {
     generateCustomId,
     applyTemplate,
     removeFromDatabase,
-    generateDynamicForm,
+    generateDynamicForm,   
+    generateRouteList,
     sanitizeInput
 };

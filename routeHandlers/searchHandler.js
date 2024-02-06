@@ -25,7 +25,7 @@ exports.handleSearchRoute = async function (url, pathSegments, request, response
     try {
         const searchResults = {};
 
-        searchResults = await dynamicSearch('categoriesResult', 'categories', 'categoryName', searchTerm);
+        searchResults = await dynamicSearch('categoriesResult', 'notes', 'Example Note', searchTerm);
 
         utils.statusCodeResponse(response, 200, searchResults, "application/json");
     } catch (error) {
