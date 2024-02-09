@@ -228,8 +228,9 @@ async function applyTemplate(templatePath, placeholders, response) {
     try {
         let template = (await fs.readFile(templatePath)).toString();
 
-        const replacedTemplate = await replaceTemplatePlaceholders(template, placeholders);
+        let replacedTemplate = await replaceTemplatePlaceholders(template, placeholders);
 
+        replacedTemplate = decodeHtmlEntities(replacedTemplate);
         statusCodeResponse(response, 200, replacedTemplate, "text/html");
         return;
     } catch (error) {
@@ -246,6 +247,20 @@ function sanitizeInput(input) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+function decodeHtmlEntities(text) {
+    console.log("Original text:", text);
+    const entities = {
+        '&amp;': '&',
+        '&lt;': '<',
+        '&gt;': '>',
+        '&quot;': '"',
+        '&#39;': "'"
+    };
+    const decodedText = text.replace(/&amp;|&lt;|&gt;|&quot;|&#39;/g, match => entities[match] || match);
+    console.log("Decoded text:", decodedText);
+    return decodedText;
 }
 
 function generateDynamicForm(fields, path, method) {

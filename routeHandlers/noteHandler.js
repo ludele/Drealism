@@ -25,6 +25,11 @@ exports.getNotes = async function (url, pathSegments, request, response) {
 
         //notes.sort((a, b) => new Date(a.date) - new Date(b.date));
 
+        notes.forEach(note => {
+            note.title = utils.sanitizeInput(note.title);
+            note.content = utils.sanitizeInput(note.content.substring(0, 100)); // Showing a preview of the content
+        });
+
         const fields = [
             { name: 'title', label: 'Title:', type: 'text', placeholder: 'Enter title' },
             { name: 'content', label: 'Content:', type: 'textarea', placeholder: 'Enter content' }
@@ -109,8 +114,8 @@ exports.createNotes = async function (url, pathSegments, request, response) {
         noteData.date = currentDate.toISOString().split('T')[0];
         noteData.time = currentDate.toTimeString().split(' ')[0];
 
-        noteData.title = params.get("title");
-        noteData.content = params.get("content");
+        noteData.title = utils.sanitizeInput(params.get("title"));
+        noteData.content = utils.sanitizeInput(params.get("title"));
 
         if (!noteData.title || !noteData.content) {
             response.writeHead(302, {"Location": "/previous-page?error=Bad Request: Missing required fields"});
