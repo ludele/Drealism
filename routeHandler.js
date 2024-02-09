@@ -17,8 +17,11 @@ const staticFileServer = require("./staticFileServer.js");
 exports.handleRoute = async function (url, pathSegments, request, response) {
 
    let title = "Drealism: Home page"
-   let nav = "Navigation menu"
-   let content = "Content"
+   let nav = `   <div class="header-box">
+                    ${utils.generateRouteList(utils.routes)}
+                <div/>
+             `
+   let content = "Index page for Drealism!"
 
    if (pathSegments.length === 0) {
       try {

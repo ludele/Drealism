@@ -1,12 +1,16 @@
 const utils = require("../utils.js");
 const templatePath = "./templates/index.maru"
+const routes = utils.routes; 
 
 exports.handleLogin = async function (url, pathSegments, request, response) {
    let title = "Drealism: Login page";
-   let nav = "Navigation menu";
+   let nav = `   <div class="header-box">
+                    ${utils.generateRouteList(routes)}
+                <div/>
+             `
 
    const userFormFields = [
-      { name: "username", label: "Username", type: "text", placeholder: "Enter your username" },
+      { name: "username", label: "Username", placeholder: "Enter your username" },
       { name: "password", label: "Password", type: "password", placeholder: "Enter your password" },
    ];
 

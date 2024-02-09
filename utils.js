@@ -11,6 +11,17 @@ const uri = `mongodb://127.0.0.1:27017/${databaseName}`;
 const client = new MongoClient(uri);
 let db;
 
+const routes = [
+    { name: "Index", url: "/" },
+    { name: "Notes", url: "/notes" },
+    { name: "Tasks", url: "/tasks" },
+    { name: "Categories", url: "/categories" },
+    { name: "Tags", url: "/tags" },
+    { name: "Search", url: "/search" },
+    { name: "User", url: "/user" },
+    { name: "Login", url: "/login" },
+];
+
 /**
  * 
  * Function to effectivise the write(head) functionality in the code, to reduce rewrittes.
@@ -237,22 +248,31 @@ function sanitizeInput(input) {
         .replace(/'/g, '&#39;');
 }
 
-function generateDynamicForm(fields) {
-    let formHTML = '<form action="/user" method="post">';
-  
+function generateDynamicForm(fields, path, method) {
+    let formHTML = `<form class="box" action="${path}" method="${method}">`;
+
     fields.forEach((field) => {
-      formHTML += `
-        <div>
-          <label for="${field.name}">${field.label}</label>
-          <input type="${field.type}" name="${field.name}" placeholder="${field.placeholder}">
-        </div>
-      `;
+        if (field.type === 'textarea') {
+            formHTML += `
+                <div>
+                    <label for="${field.name}">${field.label}</label><br>
+                    <textarea id="${field.name}" name="${field.name}" placeholder="${field.placeholder}"></textarea>
+                </div>
+            `;
+        } else {
+            formHTML += `
+                <div>
+                    <label for="${field.name}">${field.label}</label><br>
+                    <input type="${field.type}" id="${field.name}" name="${field.name}" placeholder="${field.placeholder}">
+                </div>
+            `;
+        }
     });
-  
+
     formHTML += '<button type="submit">Submit</button></form>';
-  
+
     return formHTML;
-  }  
+}
 
 
 /**
@@ -262,11 +282,11 @@ function generateDynamicForm(fields) {
  */
 function generateRouteList(userRoutes) {
     let lis = "";
-  
+
     userRoutes.forEach((route) => {
         lis += `<li class="header-box"><a href="${route.url}">${route.name}</a></li>`;
     });
-  
+
     return lis;
 }
 
@@ -283,7 +303,8 @@ module.exports = {
     generateCustomId,
     applyTemplate,
     removeFromDatabase,
-    generateDynamicForm,   
+    generateDynamicForm,
     generateRouteList,
-    sanitizeInput
+    sanitizeInput,
+    routes
 };
