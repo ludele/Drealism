@@ -34,7 +34,6 @@ exports.getCategories = async function (url, pathSegments, request, response) {
         console.log(formHTML);
 
         // Prepare placeholders with title as a link and some content
-        // Adjust the URL to the note based on your application's routing
         const placeholders = {
             title: "Drealism: Notes",
             script: `<script type="text/javascript" src="/static/js/put-or-delete.js" defer></script>`,

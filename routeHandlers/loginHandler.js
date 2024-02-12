@@ -2,6 +2,14 @@ const utils = require("../utils.js");
 const templatePath = "./templates/default.maru"
 const routes = utils.routes;
 
+/**
+ * Handles GET request to the login page.
+ * @param {String} url The requested URL.
+ * @param {Array} pathSegments An array of path segments.
+ * @param {Object} request The HTTP request object.
+ * @param {Object} response The HTTP response object.
+ */
+
 exports.getLogin = async function (url, pathSegments, request, response) {
    let db = await utils.connectToDatabase();
    let cookie; 
@@ -11,11 +19,13 @@ exports.getLogin = async function (url, pathSegments, request, response) {
       return;
    }
 
+   // Check if the cookies match a session in the database.
    let session = await db.collection('sessions').findOne({
       uuid: cookie.session,
       account: cookie.account
    });
 
+   // If the session exists, then the login page causes a logout.
    if (session) {
       handleLogout(url, pathSegments, request, response)
       return;
@@ -24,7 +34,7 @@ exports.getLogin = async function (url, pathSegments, request, response) {
    let title = "Drealism: Login page";
    let nav = `   <div class="header-box">
                     ${utils.generateRouteList(routes)}
-                <div/>
+                 <div/>
              `
 
    const userFormFields = [
@@ -52,6 +62,13 @@ exports.getLogin = async function (url, pathSegments, request, response) {
    }
 }
 
+/**
+ * Handles POST request to the login page.
+ * @param {String} url The requested URL.
+ * @param {Array} pathSegments An array of path segments.
+ * @param {Object} request The HTTP request object.
+ * @param {Object} response The HTTP response object.
+ */
 exports.postLogin = async function (url, pathSegments, request, response) {
    let db = await utils.connectToDatabase();
    let data = await utils.getBody(request);
@@ -84,6 +101,13 @@ exports.postLogin = async function (url, pathSegments, request, response) {
    return;
 }
 
+/**
+ * Handles logout functionality.
+ * @param {String} url The requested URL.
+ * @param {Array} pathSegments An array of path segments.
+ * @param {Object} request The HTTP request object.
+ * @param {Object} response The HTTP response object.
+ */
 handleLogout = async function (url, pathSegments, request, response) {
    let db = await utils.connectToDatabase();
    let cookie = utils.readSessionCookie(request.headers.cookie, response);
@@ -102,6 +126,13 @@ handleLogout = async function (url, pathSegments, request, response) {
    return;
 }
 
+/**
+ * Handles GET request to the register page.
+ * @param {String} url The requested URL.
+ * @param {Array} pathSegments An array of path segments.
+ * @param {Object} request The HTTP request object.
+ * @param {Object} response The HTTP response object.
+ */
 exports.getRegister = async function (url, pathSegments, request, response) {
    let title = "Drealism: Register page";
    let nav = `   <div class="header-box">
@@ -135,6 +166,13 @@ exports.getRegister = async function (url, pathSegments, request, response) {
    }
 }
 
+/**
+ * Handles POST request to the register page.
+ * @param {String} url The requested URL.
+ * @param {Array} pathSegments An array of path segments.
+ * @param {Object} request The HTTP request object.
+ * @param {Object} response The HTTP response object.
+ */
 exports.postRegister = async function (url, pathSegments, request, response) {
    let data = await utils.getBody(request);
    let searchParams = new URLSearchParams(data);

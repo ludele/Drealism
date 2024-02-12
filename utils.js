@@ -81,7 +81,8 @@ async function getBody(request) {
 }
 
 /**
- * 
+ * Function to connect to the database from anywhere.
+ *  
  * @param {String} databaseName 
  * @returns {promise<void>}
  */
@@ -109,6 +110,7 @@ function closeDatabaseConnection() {
 }
 
 /**
+ * Function to save data to the database
  * 
  * @param {String} collectionName 
  * @param {any} data 
@@ -131,6 +133,7 @@ async function saveToDatabase(collectionName, data) {
     }
 }
 /**
+ * Function to retrieve data from the database.
  * 
  * @param {String} databaseName 
  * @param {String} collectionName 
@@ -152,6 +155,11 @@ async function retrieveFromDatabase(databaseName, collectionName, query = {}) {
     }
 }
 
+/**
+ * 
+ * @param {*} usernameOrEmail 
+ * @returns 
+ */
 async function findUser(usernameOrEmail) {
     const db = await connectToDatabase();
     return db.collection('accounts').findOne({
@@ -196,6 +204,11 @@ async function updateInDatabase(collectionName, filter, updatedData) {
     }
 }
 
+/**
+ * Retrieves all documents from a collection.
+ * @param {String} collection the name of the collection to retrieve documents from.
+ * @returns {Array} an array of documents from the specified collection.
+ */
 async function getAllDocuments(collection) {
     try {
         const db = await connectToDatabase();
@@ -206,17 +219,22 @@ async function getAllDocuments(collection) {
         throw error;
     }
 }
-
+/**
+ * Adds a session to the specified collection.
+ * @param {String} collectionName The name of the collection to add the session to.
+ * @param {Object} session The session object to be added.
+ */
 async function addSession(collectionName, session) {
     const db = await connectToDatabase();
     const collection = db.collection(collectionName)
     await collection.insertOne(session);
 }
 /**
- * 
- * @param {String} collectionName 
- * @param {String} filter 
+ * Removes documents from a collection based on the provided filter.
+ * @param {String} collectionName The name of the collection to remove documents from.
+ * @param {Object} filter Filter to search for the object.
  */
+
 async function removeFromDatabase(collectionName, filter) {
     try {
         const db = await connectToDatabase();
@@ -237,23 +255,12 @@ function generateSessionId() {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
-async function sessionMiddleware(request, response, next) {
-    const sessionId = request.cookies.sessionId;
-
-    if (sessionId && sessions[sessionId]) {
-        request.session = sessions[sessionId];
-    } else {
-        const newSessionId = generateSessionId();
-        request.session = {
-            userId: null,
-        };
-        sessions[newSessionId] = request.session;
-
-        response.setHeader('Set-Cookie', `sessionId=${newSessionId}; Path=/; HttpOnly`);
-    }
-    next();
-}
-
+/**
+ * Applies placeholders to a template and sends the result as a response.
+ * @param {String} templatePath The path to the template file.
+ * @param {Object} placeholders Object containing placeholders and their values.
+ * @param {Object} response The HTTP response object.
+ */
 async function applyTemplate(templatePath, placeholders, response) {
     try {
         let template = (await fs.readFile(templatePath)).toString();
@@ -270,6 +277,11 @@ async function applyTemplate(templatePath, placeholders, response) {
     }
 }
 
+/**
+ * Sanitizes input by replacing special characters.
+ * @param {String} input The input string to be sanitized.
+ * @returns {String} The sanitized input string.
+ */
 function sanitizeInput(input) {
     return input
         .replace(/&/g, '&amp;')
@@ -279,6 +291,11 @@ function sanitizeInput(input) {
         .replace(/'/g, '&#39;');
 }
 
+/**
+ * Decodes HTML entities
+ * @param {String} text The text containing HTML entities.
+ * @returns {String} The text with HTML entities decoded.
+ */
 function decodeHtmlEntities(text) {
     console.log("Original text:", text);
     const entities = {
@@ -293,6 +310,14 @@ function decodeHtmlEntities(text) {
     return decodedText;
 }
 
+/**
+ * Generates HTML code for a dynamic form.
+ * @param {Array} fields Array of objects representing form fields.
+ * @param {String} path The action path for the form.
+ * @param {String} method The HTTP method for the form.
+ * @param {Object} currentValues Object containing current values for form fields.
+ * @returns {String} HTML code for the dynamic form.
+ */
 function generateDynamicForm(fields, path, method, currentValues = {}) {
     buttonText = method;
     if (!buttonText){
@@ -339,17 +364,33 @@ function generateRouteList(userRoutes) {
     return lis;
 }
 
+/**
+ * Creates a hash from the given data.
+ * @param {String} data The data to be hashed.
+ * @returns {String} The hashed data.
+ */
 async function createHash(data) {
     let dataWithPepper = data + process.env.pepper;
     let salt = await bcrypt.genSalt(10);
     return await bcrypt.hash(dataWithPepper, salt);
 }
 
+/**
+ * Compares a hashed value with the provided data.
+ * @param {String} hashed The hashed value to compare against.
+ * @param {String} data The data to compare.
+ * @returns {Boolean} True if the data matches the hashed value, otherwise false.
+ */
 async function compareHash(hashed, data) {
     let dataWithPepper = data + process.env.pepper;
     return await bcrypt.compare(dataWithPepper, hashed);
 }
 
+/**
+ * Creates a session object.
+ * @param {String} accountId The ID of the account associated with the session.
+ * @returns {Object} The created session object.
+ */
 async function createSession(accountId) {
     let expires = new Date();
     expires.setDate(expires.getDate() + 7); // 7 dagar från nu
@@ -363,17 +404,34 @@ async function createSession(accountId) {
     return session;
 }
 
+/**
+ * Generates HTML code for category options.
+ * @param {Array} categories Array of category objects.
+ * @returns {String} HTML code for category options.
+ */
 function generateCategoryOptions(categories) {
     return categories.map(category => 
         `<option value="${category.categoryId}">${category.title}</option>`
     ).join('');
 }
 
+/**
+ * Converts session data to cookie format.
+ * @param {String} sessionId The session ID.
+ * @param {String} accountId The account ID.
+ * @returns {Array} Array containing session and account cookies.
+ */
 function toSessionCookie(sessionId, accountId) {
     return [`session=${sessionId}; SameSite=Strict; Path=/`,
     `account=${accountId}; SameSite=Strict; Path=/`];
 }
 
+/**
+ * Reads session data from cookie format.
+ * @param {String} cookieString The session cookie string.
+ * @param {Object} response The HTTP response object.
+ * @returns {Object} Object containing session and account data.
+ */
 function readSessionCookie(cookieString, response) {
 
     if (!cookieString) {
@@ -418,7 +476,6 @@ module.exports = {
     closeDatabaseConnection,
     replaceTemplatePlaceholders,
     updateInDatabase,
-    sessionMiddleware,
     generateCustomId,
     applyTemplate,
     removeFromDatabase,

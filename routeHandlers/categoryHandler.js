@@ -1,3 +1,5 @@
+// Category-handler
+
 const utils = require("../utils.js");
 const collectionName = "categories";
 
@@ -44,8 +46,6 @@ exports.getCategories = async function (url, pathSegments, request, response) {
         let formHTML = utils.generateDynamicForm(fields, '/categories', 'POST');
         console.log(formHTML);
 
-        // Prepare placeholders with title as a link and some content
-        // Adjust the URL to the category based on your application's routing
         const placeholders = {
             title: "Drealism: Categories",
             script: `<script type="text/javascript" src="/static/js/put-or-delete.js" defer></script>`,
@@ -189,7 +189,6 @@ exports.updateCategories = async function (url, pathSegments, request, response,
             return;
         }
 
-        // Assuming your utility function correctly updates the category by categoryId
         await utils.updateInDatabase("categories", { categoryId }, { title });
 
         response.writeHead(302, {"Location": "/"});

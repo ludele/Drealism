@@ -15,19 +15,19 @@ const routes = utils.routes;
  * @param {http.IncomingMessage} request - The HTTP request object.
  * @param {http.ServerResponse} response - The HTTP response object.
  * @returns {Promise<void>} - A promise that resolves after fetching and sending the notes.
- */ 
+ */
 exports.getNotes = async function (url, pathSegments, request, response) {
     try {
         let db = await utils.connectToDatabase();
         let cookie = utils.readSessionCookie(request.headers.cookie);
-        let session = await db.collection('sessions').findOne({uuid: cookie.session});
+        let session = await db.collection('sessions').findOne({ uuid: cookie.session });
 
         if (!session) {
             utils.statusCodeResponse(response, 401, "Unauthorized: Session not found", "text/plain");
             return;
         }
 
-        let userId = session.account; 
+        let userId = session.account;
 
         let templatePath = './templates/main.maru';
         console.log("Fetching notes from the database...");
@@ -38,7 +38,7 @@ exports.getNotes = async function (url, pathSegments, request, response) {
 
         notes.forEach(note => {
             note.title = utils.sanitizeInput(note.title);
-            note.content = utils.sanitizeInput(note.content); // Showing a preview of the content
+            note.content = utils.sanitizeInput(note.content);
         });
 
         const fields = [
@@ -49,20 +49,18 @@ exports.getNotes = async function (url, pathSegments, request, response) {
         let formHTML = utils.generateDynamicForm(fields, '/notes', 'POST');
         console.log(formHTML);
 
-        // Prepare placeholders with title as a link and some content
-        // Adjust the URL to the note based on your application's routing
         const placeholders = {
             title: "Drealism: Notes",
             script: `<script type="text/javascript" src="/static/js/put-or-delete.js" defer></script>`,
             nav:
-            `   <div class="header-box">
+                `   <div class="header-box">
                     ${utils.generateRouteList(routes)}
                 <div/>
             `,
             form: formHTML,
-             
+
             content: notes.map(note =>
-            `   <div>
+                `   <div>
                     <li class="small-box">
                         <a class="box" href="/notes/${note.noteId}">${note.title}</a>
                         <p class="small-box">${note.content.substring(0, 100)}...</p> <!-- Showing a preview of the content -->
@@ -73,9 +71,9 @@ exports.getNotes = async function (url, pathSegments, request, response) {
             ).join('')
         };
 
-    const noteId = pathSegments[0];
+        // Retrieve the specific note from the database
+        const noteId = pathSegments[0];
         if (noteId) {
-            // Retrieve the specific note from the database
             templatePath = './templates/index.maru';
             const note = notes.find(note => note.noteId === noteId);
 
@@ -84,7 +82,7 @@ exports.getNotes = async function (url, pathSegments, request, response) {
                 { name: 'content', label: 'Content:', type: 'textarea', placeholder: 'Enter content' }
             ];
 
-            // For no forms beside the delete
+            // For no forms, beside the delete
             const emptyFields = [];
 
             const currentValues = {
@@ -95,7 +93,7 @@ exports.getNotes = async function (url, pathSegments, request, response) {
             let formHTML = utils.generateDynamicForm(noteFields, `/notes/${note.noteId}`, 'PUT', currentValues)
             // Only shows a "submit" button with the name delete
             let deleteForm = utils.generateDynamicForm(emptyFields, `/notes/${note.noteId}`, "DELETE")
-            
+
             if (note) {
                 // Display the specific note
                 placeholders.content = `
@@ -133,7 +131,7 @@ exports.createNotes = async function (url, pathSegments, request, response) {
 
         let db = await utils.connectToDatabase();
         let cookie = utils.readSessionCookie(request.headers.cookie);
-        let session = await db.collection('sessions').findOne({uuid: cookie.session});
+        let session = await db.collection('sessions').findOne({ uuid: cookie.session });
 
         if (!session) {
             utils.statusCodeResponse(response, 401, "Unauthorized: Session not found", "text/plain");
@@ -147,7 +145,7 @@ exports.createNotes = async function (url, pathSegments, request, response) {
         // noteData.userId = getUser();
 
         let noteData = {};
-        
+
         noteData.noteId = utils.generateCustomId();
 
         const currentDate = new Date();
@@ -160,7 +158,7 @@ exports.createNotes = async function (url, pathSegments, request, response) {
         noteData.content = utils.sanitizeInput(params.get("content"));
 
         if (!noteData.title || !noteData.content || !session.account) {
-            response.writeHead(302, {"Location": "/previous-page?error=Bad Request: Missing required fields"});
+            response.writeHead(302, { "Location": "/previous-page?error=Bad Request: Missing required fields" });
             response.end();
             return;
         }
@@ -187,9 +185,9 @@ exports.updateNotes = async function (url, pathSegments, request, response, note
     try {
         let rawData = await utils.getBody(request);
         console.log(rawData)
-        let updatedNoteData = JSON.parse(rawData); // Parse the raw body data as JSON
-        
-        let { title, content } = updatedNoteData; // Destructure the updated data
+        let updatedNoteData = JSON.parse(rawData); 
+
+        let { title, content } = updatedNoteData;
 
         title = await utils.sanitizeInput(title);
         content = await utils.sanitizeInput(content)
@@ -199,10 +197,9 @@ exports.updateNotes = async function (url, pathSegments, request, response, note
             return;
         }
 
-        // Assuming your utility function correctly updates the note by noteId
         await utils.updateInDatabase("notes", { noteId }, { title, content });
 
-        response.writeHead(302, {"Location": "/"});
+        response.writeHead(302, { "Location": "/" });
         response.end();
         return;
 
@@ -221,14 +218,14 @@ exports.updateNotes = async function (url, pathSegments, request, response, note
  * @returns {Promise<void>} - Resolves after deleting the note
  */
 exports.deleteNotes = async function (url, pathSegments, request, response, noteId) {
-   try {
-       await utils.removeFromDatabase("notes", { noteId: noteId });
+    try {
+        await utils.removeFromDatabase("notes", { noteId: noteId });
 
-       response.writeHead(302, {"Location": "/notes"});
-       response.end();
-       return;
-   } catch (error) {
-       console.error("Error deleting note:", error);
-       utils.statusCodeResponse(response, 500, "Internal Server Error", "text/plain");
-   }
+        response.writeHead(302, { "Location": "/notes" });
+        response.end();
+        return;
+    } catch (error) {
+        console.error("Error deleting note:", error);
+        utils.statusCodeResponse(response, 500, "Internal Server Error", "text/plain");
+    }
 };
