@@ -1,8 +1,6 @@
 const utils = require("../utils.js");
 const templatePath = "./templates/default.maru"
 const routes = utils.routes;
-let db = utils.connectToDatabase();
-
 
 exports.getLogin = async function (url, pathSegments, request, response) {
    let title = "Drealism: Login page";
@@ -37,17 +35,13 @@ exports.getLogin = async function (url, pathSegments, request, response) {
 }
 
 exports.postLogin = async function (url, pathSegments, request, response) {
+   let db = utils.connectToDatabase();
    let data = await utils.getBody(request);
    let searchParams = new URLSearchParams(data);
 
-   let account = await db.collection('accounts').findOne({
-      $or: [
-         { username: searchParams.get('username') },
-         { email: searchParams.get('username') }
-      ]
-   });
+   let account = utils.findUser("username")
 
-   if (!account || !(await compareHash(account.password, searchParams.get('password')))) {
+   if (!account || !(await utils.compareHash(account.password, searchParams.get('password')))) {
       response.writeHead(401, { 'Content-Type': 'text/plain' });
       response.write('401 Unauthorized');
       response.end();
@@ -67,17 +61,18 @@ exports.postLogin = async function (url, pathSegments, request, response) {
 }
 
 exports.handleLogout = async function (url, pathSegments, request, response) {
+   let db = utils.connectToDatabase();
    let cookie = readSessionCookie(request.headers.cookie);
    let session = await db.collection('sessions').findOne({
       uuid: cookie.session,
       account: cookie.account
    });
 
-   db.collection('sessions').deleteOne({ uuid: session.uuid }); // kör denna i bakgrunden för att inte blockera resten av koden
+   db.collection('sessions').deleteOne({ uuid: session.uuid }); 
 
    response.writeHead(303, {
       'Location': '/',
-      'Set-Cookie': ['session=; Path=/; Max-Age: 0', 'account=; Path=/; Max-Age: 0'] // tar bort utgångna cookies från användarens webbläsare
+      'Set-Cookie': ['session=; Path=/; Max-Age: 0', 'account=; Path=/; Max-Age: 0'] 
    });
    response.end();
    return;

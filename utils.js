@@ -2,7 +2,6 @@
 // Contains general functionality, used in various parts of the code-base.
 const { IncomingMessage, ServerResponse } = require('http');
 const { MongoClient } = require('mongodb');
-const internal = require('stream');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 require('dotenv').config();
@@ -87,7 +86,8 @@ async function getBody(request) {
  * @param {String} databaseName 
  * @returns {promise<void>}
  */
-async function connectToDatabase(databaseName) {
+async function connectToDatabase() {
+    let databaseName = "drealism"
     try {
         if (!client || !client.topology || !client.topology.isConnected()) {
             await client.connect();
@@ -151,6 +151,16 @@ async function retrieveFromDatabase(databaseName, collectionName, query = {}) {
         console.error(`Error retrieving data from ${collectionName}:`, error);
         throw error;
     }
+}
+
+async function findUser(usernameOrEmail) {
+    const db = await connectToDatabase();
+    return db.collection('accounts').findOne({
+        $or: [
+            { username: usernameOrEmail },
+            { email: usernameOrEmail }
+        ]
+    });
 }
 
 /**
@@ -316,7 +326,7 @@ async function createHash(data) {
 }
 
 async function compareHash(hashed, data) {
-	let dataWithPepper = data + pepper;
+	let dataWithPepper = data + process.env.pepper;
 	return await bcrypt.compare(dataWithPepper, hashed);
 }
 
@@ -339,7 +349,6 @@ function toSessionCookie(sessionId, accountId) {
 }
 
 function readSessionCookie(cookieString) {
-	// cookieString exempel: session=603dcb25-1b83-4eda-8295-8c37c20362cb; account=f726cd79-ee02-46ae-b74c-132e726fc378
 
 	let keyValuePairs = cookieString.split(';');
 
@@ -368,6 +377,7 @@ module.exports = {
     statusCodeResponse,
     getBody,
     saveToDatabase,
+    findUser,
     connectToDatabase,
     retrieveFromDatabase,
     closeDatabaseConnection,
