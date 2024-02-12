@@ -4,17 +4,19 @@ document.addEventListener('DOMContentLoaded', (event) => {
         e.preventDefault(); 
 
         const formData = new FormData(this);
+        const formObject = Object.fromEntries(formData.entries()); 
         const actionUrl = this.action; 
 
         fetch(actionUrl, {
             method: 'PUT', 
-            body: formData,
             headers: {
+                'Content-Type': 'application/json',
             },
+            body: JSON.stringify(formObject), 
         })
-        .then(response => response.json())
         .then(data => {
             console.log('Success:', data);
+            window.location.reload();
         })
         .catch((error) => {
             console.error('Error:', error);

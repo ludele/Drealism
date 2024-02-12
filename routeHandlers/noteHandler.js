@@ -160,9 +160,13 @@ exports.createNotes = async function (url, pathSegments, request, response) {
 exports.updateNotes = async function (url, pathSegments, request, response, noteId) {
     try {
         let rawData = await utils.getBody(request);
-        const updatedNoteData = JSON.parse(rawData); // Parse the raw body data as JSON
+        console.log(rawData)
+        let updatedNoteData = JSON.parse(rawData); // Parse the raw body data as JSON
+        
+        let { title, content } = updatedNoteData; // Destructure the updated data
 
-        const { title, content } = updatedNoteData; // Destructure the updated data
+        title = await utils.sanitizeInput(title);
+        content = await utils.sanitizeInput(content)
 
         if (!title || !content) {
             utils.statusCodeResponse(response, 400, "Bad Request: Missing required fields", "text/plain");
@@ -172,7 +176,10 @@ exports.updateNotes = async function (url, pathSegments, request, response, note
         // Assuming your utility function correctly updates the note by noteId
         await utils.updateInDatabase("notes", { noteId }, { title, content });
 
-        utils.statusCodeResponse(response, 200, "Note updated successfully", "application/json");
+        response.writeHead(302, {"Location": "/"});
+        response.end();
+        return;
+
     } catch (error) {
         console.error("Error updating note:", error);
         utils.statusCodeResponse(response, 500, "Internal Server Error", "text/plain");

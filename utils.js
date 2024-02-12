@@ -1,8 +1,11 @@
 // utils.js 
 // Contains general functionality, used in various parts of the code-base.
 const { IncomingMessage, ServerResponse } = require('http');
-const { MongoClient, Int32 } = require('mongodb');
+const { MongoClient } = require('mongodb');
 const internal = require('stream');
+const crypto = require('crypto');
+const bcrypt = require('bcrypt');
+require('dotenv').config();
 
 const fs = require("fs").promises;
 const databaseName = "drealism"
@@ -20,6 +23,7 @@ const routes = [
     { name: "Search", url: "/search" },
     { name: "User", url: "/user" },
     { name: "Login", url: "/login" },
+    { name: "Register", url: "/register" },
 ];
 
 /**
@@ -305,7 +309,62 @@ function generateRouteList(userRoutes) {
     return lis;
 }
 
+async function createHash(data) {
+	let dataWithPepper = data + process.env.pepper;
+	let salt = await bcrypt.genSalt(10);
+	return await bcrypt.hash(dataWithPepper, salt);
+}
+
+async function compareHash(hashed, data) {
+	let dataWithPepper = data + pepper;
+	return await bcrypt.compare(dataWithPepper, hashed);
+}
+
+async function createSession(accountId) {
+	let expires = new Date();
+	expires.setDate(expires.getDate() + 7); // 7 dagar från nu
+
+	let session = {
+		uuid: crypto.randomUUID(),
+		account: accountId,
+		expires: expires
+	};
+
+	return session;
+}
+
+function toSessionCookie(sessionId, accountId) {
+	return [`session=${sessionId}; SameSite=Strict; Path=/`,
+	`account=${accountId}; SameSite=Strict; Path=/`];
+}
+
+function readSessionCookie(cookieString) {
+	// cookieString exempel: session=603dcb25-1b83-4eda-8295-8c37c20362cb; account=f726cd79-ee02-46ae-b74c-132e726fc378
+
+	let keyValuePairs = cookieString.split(';');
+
+	let session;
+	let account;
+
+	for (let i = 0; i < keyValuePairs.length; i++) {
+		let pair = keyValuePairs[i].trim().split('=');
+
+		if (pair[0] === 'session') {
+			session = pair[1];
+		} else if (pair[0] === 'account') {
+			account = pair[1];
+		}
+	}
+
+	return { session: session, account: account };
+}
+
 module.exports = {
+    createHash,
+    compareHash,
+    createSession,
+    toSessionCookie,
+    readSessionCookie,
     statusCodeResponse,
     getBody,
     saveToDatabase,
@@ -321,5 +380,6 @@ module.exports = {
     generateDynamicForm,
     generateRouteList,
     sanitizeInput,
-    routes
+    routes,
+    db
 };

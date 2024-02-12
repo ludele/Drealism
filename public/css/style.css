@@ -35,7 +35,14 @@ body {
    background-color: #f6cfcf;
    padding: 0.4rem;
    border-radius: 15px; /* Optional: Rounded corners for a softer look */
-   flex-grow: 1;
+   flex-grow: wrap;
+}
+
+@media screen and (max-width: 768px) {
+   .header-box {
+      flex-direction: column; /* Stack items vertically on smaller screens */
+      align-items: center; /* Center items vertically */
+   }
 }
 
 .header-box a {

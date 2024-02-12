@@ -77,7 +77,9 @@ exports.handleRoute = async function (url, pathSegments, request, response) {
          break;
       case "login":
          if (request.method === "GET") {
-            loginHandler.handleLogin(url, pathSegments, request, response);
+            loginHandler.getLogin(url, pathSegments, request, response);
+         } else if (request.method === "POST") {
+            loginHandler.postLogin(url, pathSegments, request, response)
          }
          break;
       case "logout":
@@ -85,13 +87,23 @@ exports.handleRoute = async function (url, pathSegments, request, response) {
             loginHandler.handleLogout(url, pathSegments, request, response);
          }
          break;
+      case "register":
+         if (request.method === "GET") {
+            loginHandler.getRegister(url, pathSegments, request, response);
+         } else if (request.method === "POST") {
+            loginHandler.postRegister(url, pathSegments, request, response);
+         }
+         break;
       case "notes":
          if (request.method === "GET") {
             noteHandler.getNotes(url, pathSegments, request, response);
          } else if (request.method === "POST") {
             noteHandler.createNotes(url, pathSegments, request, response);
-         } else if (pathSegments.length === 2 && request.method === "PUT")
-            noteHandler.updateNotes(url, pathSegments, request, response, pathSegments[1])
+         } 
          break;
+   }
+
+   if (seg === "notes" && pathSegments.length === 1 && request.method === "PUT") {
+      noteHandler.updateNotes(url, pathSegments, request, response, pathSegments[0]);
    }
 }
