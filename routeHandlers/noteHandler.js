@@ -18,9 +18,20 @@ const routes = utils.routes;
  */ 
 exports.getNotes = async function (url, pathSegments, request, response) {
     try {
+        let db = await utils.connectToDatabase();
+        let cookie = utils.readSessionCookie(request.headers.cookie);
+        let session = await db.collection('sessions').findOne({uuid: cookie.session});
+
+        if (!session) {
+            utils.statusCodeResponse(response, 401, "Unauthorized: Session not found", "text/plain");
+            return;
+        }
+
+        let userId = session.account; 
+
         let templatePath = './templates/main.maru';
         console.log("Fetching notes from the database...");
-        let notes = await utils.retrieveFromDatabase("drealism", collectionName);
+        let notes = await utils.retrieveFromDatabase("drealism", collectionName, { userId: userId });
         console.log("Retrieved notes:", notes);
 
         //notes.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -115,6 +126,15 @@ exports.getNotes = async function (url, pathSegments, request, response) {
  */
 exports.createNotes = async function (url, pathSegments, request, response) {
     try {
+
+        let db = await utils.connectToDatabase();
+        let cookie = utils.readSessionCookie(request.headers.cookie);
+        let session = await db.collection('sessions').findOne({uuid: cookie.session});
+
+        if (!session) {
+            utils.statusCodeResponse(response, 401, "Unauthorized: Session not found", "text/plain");
+            return;
+        }
         const requestBody = await utils.getBody(request);
         //const noteData = JSON.parse(requestBody);
         let params = new URLSearchParams(requestBody);
@@ -129,13 +149,14 @@ exports.createNotes = async function (url, pathSegments, request, response) {
         const currentDate = new Date();
         noteData.date = currentDate.toISOString().split('T')[0];
         noteData.time = currentDate.toTimeString().split(' ')[0];
+        noteData.userId = session.account;
 
         noteData.title = utils.sanitizeInput(params.get("title"));
         noteData.content = utils.sanitizeInput(params.get("content"));
 
-        if (!noteData.title || !noteData.content) {
+        if (!noteData.title || !noteData.content || !session.account) {
             response.writeHead(302, {"Location": "/previous-page?error=Bad Request: Missing required fields"});
-            response.end();
+            response.end();s
             return;
         }
 
@@ -194,10 +215,8 @@ exports.updateNotes = async function (url, pathSegments, request, response, note
  * @param {http.ServerResponse} response - HTTP response object
  * @returns {Promise<void>} - Resolves after deleting the note
  */
-exports.deleteNotes = async function (url, pathSegments, request, response) {
+exports.deleteNotes = async function (url, pathSegments, request, response, noteId) {
    try {
-       const noteId = pathSegments[1];
-
        await utils.removeFromDatabase("notes", { _id: noteId });
 
        utils.statusCodeResponse(response, 200, "Note deleted successfully", "text/plain");

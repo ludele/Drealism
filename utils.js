@@ -18,10 +18,9 @@ const routes = [
     { name: "Notes", url: "/notes" },
     { name: "Tasks", url: "/tasks" },
     { name: "Categories", url: "/categories" },
-    { name: "Tags", url: "/tags" },
     { name: "Search", url: "/search" },
     { name: "User", url: "/user" },
-    { name: "Login", url: "/login" },
+    { name: "Log/in/out", url: "/login" },
     { name: "Register", url: "/register" },
 ];
 
@@ -196,6 +195,12 @@ async function updateInDatabase(collectionName, filter, updatedData) {
         throw error;
     }
 }
+
+async function addSession(collectionName, session) {
+    const db = await connectToDatabase();
+    const collection = db.collection(collectionName)
+    await collection.insertOne(session);
+}
 /**
  * 
  * @param {String} collectionName 
@@ -320,52 +325,58 @@ function generateRouteList(userRoutes) {
 }
 
 async function createHash(data) {
-	let dataWithPepper = data + process.env.pepper;
-	let salt = await bcrypt.genSalt(10);
-	return await bcrypt.hash(dataWithPepper, salt);
+    let dataWithPepper = data + process.env.pepper;
+    let salt = await bcrypt.genSalt(10);
+    return await bcrypt.hash(dataWithPepper, salt);
 }
 
 async function compareHash(hashed, data) {
-	let dataWithPepper = data + process.env.pepper;
-	return await bcrypt.compare(dataWithPepper, hashed);
+    let dataWithPepper = data + process.env.pepper;
+    return await bcrypt.compare(dataWithPepper, hashed);
 }
 
 async function createSession(accountId) {
-	let expires = new Date();
-	expires.setDate(expires.getDate() + 7); // 7 dagar från nu
+    let expires = new Date();
+    expires.setDate(expires.getDate() + 7); // 7 dagar från nu
 
-	let session = {
-		uuid: crypto.randomUUID(),
-		account: accountId,
-		expires: expires
-	};
+    let session = {
+        uuid: crypto.randomUUID(),
+        account: accountId,
+        expires: expires
+    };
 
-	return session;
+    return session;
 }
 
 function toSessionCookie(sessionId, accountId) {
-	return [`session=${sessionId}; SameSite=Strict; Path=/`,
-	`account=${accountId}; SameSite=Strict; Path=/`];
+    return [`session=${sessionId}; SameSite=Strict; Path=/`,
+    `account=${accountId}; SameSite=Strict; Path=/`];
 }
 
-function readSessionCookie(cookieString) {
+function readSessionCookie(cookieString, response) {
 
-	let keyValuePairs = cookieString.split(';');
+    if (!cookieString) {
+        statusCodeResponse(response, 404, "You are not logged in", "text/plain");
+        return null;
+    }
+    else {
+        let keyValuePairs = cookieString.split(';');
 
-	let session;
-	let account;
+        let session;
+        let account;
 
-	for (let i = 0; i < keyValuePairs.length; i++) {
-		let pair = keyValuePairs[i].trim().split('=');
+        for (let i = 0; i < keyValuePairs.length; i++) {
+            let pair = keyValuePairs[i].trim().split('=');
 
-		if (pair[0] === 'session') {
-			session = pair[1];
-		} else if (pair[0] === 'account') {
-			account = pair[1];
-		}
-	}
+            if (pair[0] === 'session') {
+                session = pair[1];
+            } else if (pair[0] === 'account') {
+                account = pair[1];
+            }
+        }
 
-	return { session: session, account: account };
+        return { session: session, account: account };
+    }
 }
 
 module.exports = {
@@ -373,6 +384,7 @@ module.exports = {
     compareHash,
     createSession,
     toSessionCookie,
+    addSession,
     readSessionCookie,
     statusCodeResponse,
     getBody,

@@ -55,13 +55,6 @@ exports.handleRoute = async function (url, pathSegments, request, response) {
             categoryHandler.createCategories(url, pathSegments, request, response);
          }
          break;
-      case "tags":
-         if (request.method === "GET") {
-            tagHandler.getTags(url, pathSegments, request, response);
-         } else if (request.method === "POST") {
-            tagHandler.createTags(url, pathSegments, request, response);
-         }
-         break;
       case "user":
          userHandler.handleUserRoute(url, pathSegments, request, response);
          break;
@@ -80,11 +73,6 @@ exports.handleRoute = async function (url, pathSegments, request, response) {
             loginHandler.getLogin(url, pathSegments, request, response);
          } else if (request.method === "POST") {
             loginHandler.postLogin(url, pathSegments, request, response)
-         }
-         break;
-      case "logout":
-         if (request.method === "GET") {
-            loginHandler.handleLogout(url, pathSegments, request, response);
          }
          break;
       case "register":

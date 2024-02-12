@@ -40,10 +40,20 @@ const app = http.createServer(handleRequest);
 
 // If the server closes, then the connection to MongoDB closes.
 process.on('SIGINT', async () => {
-   console.log('Closing MongoDB Connection due to application exit');
+   console.log('Deleting all sessions and closing MongoDB Connection due to application exit');
+
+   let db = await utils.connectToDatabase();
+
+   // Delete all sessions from the 'sessions' collection
+   await db.collection('sessions').deleteMany({}); // Empty filter object deletes all documents
+
+   // Close the database connection
    await utils.closeDatabaseConnection();
+
+   console.log('MongoDB Connection closed');
    process.exit(0);
 });
+
 
 app.listen(port, function () {
    console.log(`Listening to ${port}`);

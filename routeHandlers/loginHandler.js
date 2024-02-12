@@ -3,6 +3,24 @@ const templatePath = "./templates/default.maru"
 const routes = utils.routes;
 
 exports.getLogin = async function (url, pathSegments, request, response) {
+   let db = await utils.connectToDatabase();
+   let cookie; 
+   cookie = utils.readSessionCookie(request.headers.cookie, response);
+
+   if (!cookie || typeof cookie.session === 'undefined' || typeof cookie.account === 'undefined') {
+      return;
+   }
+
+   let session = await db.collection('sessions').findOne({
+      uuid: cookie.session,
+      account: cookie.account
+   });
+
+   if (session) {
+      handleLogout(url, pathSegments, request, response)
+      return;
+   } 
+   
    let title = "Drealism: Login page";
    let nav = `   <div class="header-box">
                     ${utils.generateRouteList(routes)}
@@ -35,11 +53,17 @@ exports.getLogin = async function (url, pathSegments, request, response) {
 }
 
 exports.postLogin = async function (url, pathSegments, request, response) {
-   let db = utils.connectToDatabase();
+   let db = await utils.connectToDatabase();
    let data = await utils.getBody(request);
    let searchParams = new URLSearchParams(data);
 
-   let account = utils.findUser("username")
+   const results = await utils.retrieveFromDatabase('drealism', 'accounts', {
+      $or: [
+          { username: searchParams.get('username') },
+      ]
+   });
+
+   const account = results[0];
 
    if (!account || !(await utils.compareHash(account.password, searchParams.get('password')))) {
       response.writeHead(401, { 'Content-Type': 'text/plain' });
@@ -48,21 +72,21 @@ exports.postLogin = async function (url, pathSegments, request, response) {
       return;
    }
 
-   let session = await createSession(account.uuid);
-   await db.collection('sessions').insertOne(session);
+   let session = await utils.createSession(account.uuid);
+   await utils.addSession("sessions", session)
 
    response.writeHead(303, {
-      'Location': '/profile',
-      'Set-Cookie': toSessionCookie(session.uuid, session.account)
+      'Location': '/user',
+      'Set-Cookie': utils.toSessionCookie(session.uuid, session.account)
    });
    response.write('200 OK');
    response.end();
    return;
 }
 
-exports.handleLogout = async function (url, pathSegments, request, response) {
-   let db = utils.connectToDatabase();
-   let cookie = readSessionCookie(request.headers.cookie);
+handleLogout = async function (url, pathSegments, request, response) {
+   let db = await utils.connectToDatabase();
+   let cookie = utils.readSessionCookie(request.headers.cookie, response);
    let session = await db.collection('sessions').findOne({
       uuid: cookie.session,
       account: cookie.account
@@ -86,7 +110,7 @@ exports.getRegister = async function (url, pathSegments, request, response) {
              `
 
    const userFormFields = [
-      { name: "username", label: "Username", placeholder: "Enter your Name" },
+      { name: "name", label: "Name", placeholder: "Enter your Name" },
       { name: "username", label: "Username", placeholder: "Enter your username" },
       { name: "password", label: "Password", type: "password", placeholder: "Enter your password" },
    ];
