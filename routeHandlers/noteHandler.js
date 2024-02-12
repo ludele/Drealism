@@ -1,5 +1,3 @@
-// noteHandler.js
-
 const utils = require("../utils.js");
 const collectionName = "notes";
 
@@ -38,7 +36,7 @@ exports.getNotes = async function (url, pathSegments, request, response) {
 
         notes.forEach(note => {
             note.title = utils.sanitizeInput(note.title);
-            note.content = utils.sanitizeInput(note.content.substring(0, 100)); // Showing a preview of the content
+            note.content = utils.sanitizeInput(note.content); // Showing a preview of the content
         });
 
         const fields = [
@@ -53,13 +51,14 @@ exports.getNotes = async function (url, pathSegments, request, response) {
         // Adjust the URL to the note based on your application's routing
         const placeholders = {
             title: "Drealism: Notes",
-            script: `<script type="text/javascript" src="/static/js/put.js" defer></script>`,
+            script: `<script type="text/javascript" src="/static/js/put-or-delete.js" defer></script>`,
             nav:
             `   <div class="header-box">
                     ${utils.generateRouteList(routes)}
                 <div/>
             `,
-            form: formHTML, 
+            form: formHTML,
+             
             content: notes.map(note =>
             `   <div>
                     <li class="small-box">
@@ -82,30 +81,35 @@ exports.getNotes = async function (url, pathSegments, request, response) {
                 { name: 'title', label: 'Title:', type: 'text', placeholder: 'Enter title' },
                 { name: 'content', label: 'Content:', type: 'textarea', placeholder: 'Enter content' }
             ];
-            
+
+            // For no forms beside the delete
+            const emptyFields = [];
+
             const currentValues = {
                 title: note.title,
                 content: note.content,
-
             };
             
             let formHTML = utils.generateDynamicForm(noteFields, `/notes/${note.noteId}`, 'PUT', currentValues)
-
+            // Only shows a "submit" button with the name delete
+            let deleteForm = utils.generateDynamicForm(emptyFields, `/notes/${note.noteId}`, "DELETE")
+            
             if (note) {
                 // Display the specific note
                 placeholders.content = `
                     <div>
-                        <h2>${note.title}</h2>
-                        <p>${note.content}</p>
                         <p>${note.date} ${note.time}</p>
                     </div>
                     ${formHTML}
+                    ${deleteForm}
                 `;
             } else {
                 // Note not found
                 placeholders.content = "<p>Note not found</p>";
             }
         }
+
+        
 
         await utils.applyTemplate(templatePath, placeholders, response);
     } catch (error) {
@@ -156,7 +160,7 @@ exports.createNotes = async function (url, pathSegments, request, response) {
 
         if (!noteData.title || !noteData.content || !session.account) {
             response.writeHead(302, {"Location": "/previous-page?error=Bad Request: Missing required fields"});
-            response.end();s
+            response.end();
             return;
         }
 
@@ -217,9 +221,11 @@ exports.updateNotes = async function (url, pathSegments, request, response, note
  */
 exports.deleteNotes = async function (url, pathSegments, request, response, noteId) {
    try {
-       await utils.removeFromDatabase("notes", { _id: noteId });
+       await utils.removeFromDatabase("notes", { noteId: noteId });
 
-       utils.statusCodeResponse(response, 200, "Note deleted successfully", "text/plain");
+       response.writeHead(302, {"Location": "/notes"});
+       response.end();
+       return;
    } catch (error) {
        console.error("Error deleting note:", error);
        utils.statusCodeResponse(response, 500, "Internal Server Error", "text/plain");

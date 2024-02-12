@@ -38,7 +38,7 @@ body {
    flex-grow: wrap;
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 700px) {
    .header-box {
       flex-direction: column; /* Stack items vertically on smaller screens */
       align-items: center; /* Center items vertically */

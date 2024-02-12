@@ -304,7 +304,7 @@ function generateDynamicForm(fields, path, method, currentValues = {}) {
         }
     });
 
-    formHTML += '<button type="submit">Submit</button></form>';
+    formHTML += `<button type="submit">${method}</button></form>`;
 
     return formHTML;
 }

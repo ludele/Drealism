@@ -1,35 +1,60 @@
+const { ServerHeartbeatSucceededEvent } = require("mongodb");
 const utils = require("../utils.js");
 
-const searchCollection = async (collection, query) => {
-    return await collection.find(query).toArray();
-};
+exports.handleSearchRoute = async function(url, pathSegments, request, response) {
+    
+    let db = await utils.connectToDatabase(); 
+    let urlParts = new URL(request.url, `http://${request.headers.host}`);
+    let searchQuery = urlParts.searchParams.get("query");
+    searchQuery = searchQuery ? String(searchQuery) : '';
+    console.log("Search Query:", searchQuery, typeof searchQuery);
 
-async function dynamicSearch(resultName, collection, termName, searchTerm) {
-    try {
-        const query = {};
-        query[termName] = { $regex: searchTerm, $options: 'i' };
+    let cookie = utils.readSessionCookie(request.headers.cookie);
 
-        const result = await searchCollection(utils.db.collection(collection), query);
+    if (!cookie || typeof cookie.session === 'undefined' || typeof cookie.account === 'undefined') {
+        return;
+    }  
 
-        return { [resultName]: result };
-    } catch (error) {
-        console.error(error);
-        return { [resultName]: [] }; 
+    let session = await db.collection('sessions').findOne({uuid: cookie.session});
+    if (!session) {
+        return utils.statusCodeResponse(response, 401, "Unauthorized: Session not found", "text/plain");
     }
-}
+    let userId = session.account;
 
-exports.handleSearchRoute = async function (url, pathSegments, request, response) {
-    const searchTerm = utils.sanitizeInput(request.query && request.query.q ? request.query.q : '');
+    // Perform the search across collections
+    let collections = ['notes', 'tasks', 'categories'];
+    let searchResults = await Promise.all(collections.map(collection => 
+        db.collection(collection).find({
+            userId: userId,
+            $or: [
+                { title: { $regex: searchQuery, $options: 'i' } },
+                { content: { $regex: searchQuery, $options: 'i' } },
+            ]
+        }).toArray()
+    ));
 
+    content = searchResults.map(doc =>
+        `   <div>
+                <li class="small-box">
+                    <a class="box" href="/notes/${doc.noteId}">${doc.title}</a>
+                    <p class="small-box">${doc.content}...</p> <!-- Showing a preview of the content -->
+                    <span class="small-box">${doc.date} ${doc.time}</span>
+                </li>
+            <div/>
+        `
+        ).join('');
 
-    try {
-        const searchResults = {};
+    console.log(searchResults)
+    const searchFormFields = [
+        { name: 'query', label: 'Search Query', type: 'text', placeholder: 'Enter search terms...' }
+    ];
+    
+    let searchFormHTML = utils.generateDynamicForm(searchFormFields, '/search', 'GET');
 
-        searchResults = await dynamicSearch('categoriesResult', 'notes', 'Example Note', searchTerm);
-
-        utils.statusCodeResponse(response, 200, searchResults, "application/json");
-    } catch (error) {
-        console.error(error);
-        utils.statusCodeResponse(response, 500, "Internal Server Error", "text/plain");
-    }
+    const placeholders = {
+        nav: `<div class="header-box">${utils.generateRouteList(utils.routes)}</div>`,
+        content: content, // Pass the results to the template
+        form: searchFormHTML
+    };
+    await utils.applyTemplate('./templates/main.maru', placeholders, response);
 };

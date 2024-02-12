@@ -10,6 +10,7 @@ exports.handleUserRoute = async function (url, pathSegments, request, response) 
       return;
    }
 
+
    let session = await db.collection('sessions').findOne({
       uuid: cookie.session,
       account: cookie.account

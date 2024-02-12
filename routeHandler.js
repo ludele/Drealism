@@ -53,6 +53,10 @@ exports.handleRoute = async function (url, pathSegments, request, response) {
             categoryHandler.getCategories(url, pathSegments, request, response);
          } else if (request.method === "POST") {
             categoryHandler.createCategories(url, pathSegments, request, response);
+         } else if (pathSegments.length === 1 && request.method === "PUT") {
+            categoryHandler.updateCategories(url, pathSegments, request, response, pathSegments[0]);
+         } else if (pathSegments.length === 1 && request.method === "DELETE") {
+            categoryHandler.deleteCategories(url, pathSegments, request, response, pathSegments[0]);
          }
          break;
       case "user":
@@ -87,11 +91,11 @@ exports.handleRoute = async function (url, pathSegments, request, response) {
             noteHandler.getNotes(url, pathSegments, request, response);
          } else if (request.method === "POST") {
             noteHandler.createNotes(url, pathSegments, request, response);
-         } 
+         } else if (pathSegments.length === 1 && request.method === "PUT") {
+            noteHandler.updateNotes(url, pathSegments, request, response, pathSegments[0]);
+         } else if (pathSegments.length === 1 && request.method === "DELETE") {
+            noteHandler.deleteNotes(url, pathSegments, request, response, pathSegments[0]);
+         }
          break;
-   }
-
-   if (seg === "notes" && pathSegments.length === 1 && request.method === "PUT") {
-      noteHandler.updateNotes(url, pathSegments, request, response, pathSegments[0]);
    }
 }
