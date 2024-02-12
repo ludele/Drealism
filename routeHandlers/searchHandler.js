@@ -9,11 +9,12 @@ exports.handleSearchRoute = async function(url, pathSegments, request, response)
     searchQuery = searchQuery ? String(searchQuery) : '';
     console.log("Search Query:", searchQuery, typeof searchQuery);
 
-    let cookie = utils.readSessionCookie(request.headers.cookie);
-
+    let cookie; 
+    cookie = utils.readSessionCookie(request.headers.cookie, response);
+ 
     if (!cookie || typeof cookie.session === 'undefined' || typeof cookie.account === 'undefined') {
-        return;
-    }  
+       return;
+    }
 
     let session = await db.collection('sessions').findOne({uuid: cookie.session});
     if (!session) {

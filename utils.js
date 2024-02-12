@@ -16,7 +16,7 @@ let db;
 const routes = [
     { name: "Index", url: "/" },
     { name: "Notes", url: "/notes" },
-    { name: "Tasks", url: "/tasks" },
+  //{ name: "Tasks", url: "/tasks" },
     { name: "Categories", url: "/categories" },
     { name: "Search", url: "/search" },
     { name: "User", url: "/user" },
@@ -196,6 +196,17 @@ async function updateInDatabase(collectionName, filter, updatedData) {
     }
 }
 
+async function getAllDocuments(collection) {
+    try {
+        const db = await connectToDatabase();
+        const docs = await db.collection(collection).find({}).toArray();
+        return docs;
+    } catch (error) {
+        console.error(`Error fetching ${collection}:`, error);
+        throw error;
+    }
+}
+
 async function addSession(collectionName, session) {
     const db = await connectToDatabase();
     const collection = db.collection(collectionName)
@@ -283,6 +294,10 @@ function decodeHtmlEntities(text) {
 }
 
 function generateDynamicForm(fields, path, method, currentValues = {}) {
+    buttonText = method;
+    if (!buttonText){
+        buttonText = "Submit";
+    }
     let formHTML = `<form id="${method}" class="box" action="${path}" method="${method}">`;
 
     fields.forEach((field) => {
@@ -348,6 +363,12 @@ async function createSession(accountId) {
     return session;
 }
 
+function generateCategoryOptions(categories) {
+    return categories.map(category => 
+        `<option value="${category.categoryId}">${category.title}</option>`
+    ).join('');
+}
+
 function toSessionCookie(sessionId, accountId) {
     return [`session=${sessionId}; SameSite=Strict; Path=/`,
     `account=${accountId}; SameSite=Strict; Path=/`];
@@ -356,7 +377,7 @@ function toSessionCookie(sessionId, accountId) {
 function readSessionCookie(cookieString, response) {
 
     if (!cookieString) {
-        statusCodeResponse(response, 404, "You are not logged in", "text/plain");
+        statusCodeResponse(response, 404, "Your browser does not have cookies enabled, required for login", "text/plain");
         return null;
     }
     else {
@@ -389,6 +410,8 @@ module.exports = {
     statusCodeResponse,
     getBody,
     saveToDatabase,
+    getAllDocuments,
+    generateCategoryOptions,
     findUser,
     connectToDatabase,
     retrieveFromDatabase,

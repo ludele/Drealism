@@ -1,3 +1,5 @@
+// Note-handler
+
 const utils = require("../utils.js");
 const collectionName = "notes";
 
@@ -89,7 +91,7 @@ exports.getNotes = async function (url, pathSegments, request, response) {
                 title: note.title,
                 content: note.content,
             };
-            
+
             let formHTML = utils.generateDynamicForm(noteFields, `/notes/${note.noteId}`, 'PUT', currentValues)
             // Only shows a "submit" button with the name delete
             let deleteForm = utils.generateDynamicForm(emptyFields, `/notes/${note.noteId}`, "DELETE")
@@ -100,16 +102,14 @@ exports.getNotes = async function (url, pathSegments, request, response) {
                     <div>
                         <p>${note.date} ${note.time}</p>
                     </div>
-                    ${formHTML}
-                    ${deleteForm}
+                        ${formHTML}
+                        ${deleteForm}
                 `;
             } else {
                 // Note not found
                 placeholders.content = "<p>Note not found</p>";
             }
         }
-
-        
 
         await utils.applyTemplate(templatePath, placeholders, response);
     } catch (error) {
@@ -154,6 +154,7 @@ exports.createNotes = async function (url, pathSegments, request, response) {
         noteData.date = currentDate.toISOString().split('T')[0];
         noteData.time = currentDate.toTimeString().split(' ')[0];
         noteData.userId = session.account;
+        noteData.categories = [];
 
         noteData.title = utils.sanitizeInput(params.get("title"));
         noteData.content = utils.sanitizeInput(params.get("content"));

@@ -1,15 +1,11 @@
 
-const fs = require("fs").promises;
-const path = require("path");
 const utils = require("./utils.js");
 
 const templatePath = "./templates/index.maru"
 
 const noteHandler = require("./routeHandlers/noteHandler.js");
 const categoryHandler = require("./routeHandlers/categoryHandler.js");
-const tagHandler = require("./routeHandlers/tagHandler.js");
 const userHandler = require("./routeHandlers/userHandler.js");
-const taskHandler = require("./routeHandlers/taskHandler.js");
 const searchHandler = require("./routeHandlers/searchHandler.js");
 const loginHandler = require("./routeHandlers/loginHandler.js");
 const staticFileServer = require("./staticFileServer.js");
@@ -62,13 +58,7 @@ exports.handleRoute = async function (url, pathSegments, request, response) {
       case "user":
          userHandler.handleUserRoute(url, pathSegments, request, response);
          break;
-      case "tasks":
-         if (request.method === "GET") {
-            taskHandler.getTasks(url, pathSegments, request, response);
-         } else if (request.method === "POST") {
-            taskHandler.createTasks(url, pathSegments, request, response);
-         }
-         break;
+      // Tried search handler.
       case "search":
          searchHandler.handleSearchRoute(url, pathSegments, request, response);
          break;
