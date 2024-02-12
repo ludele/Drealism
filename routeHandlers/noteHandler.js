@@ -42,6 +42,7 @@ exports.getNotes = async function (url, pathSegments, request, response) {
         // Adjust the URL to the note based on your application's routing
         const placeholders = {
             title: "Drealism: Notes",
+            script: `<script type="text/javascript" src="/static/js/put.js" defer></script>`,
             nav:
             `   <div class="header-box">
                     ${utils.generateRouteList(routes)}
@@ -65,6 +66,20 @@ exports.getNotes = async function (url, pathSegments, request, response) {
             // Retrieve the specific note from the database
             templatePath = './templates/index.maru';
             const note = notes.find(note => note.noteId === noteId);
+
+            const noteFields = [
+                { name: 'title', label: 'Title:', type: 'text', placeholder: 'Enter title' },
+                { name: 'content', label: 'Content:', type: 'textarea', placeholder: 'Enter content' }
+            ];
+            
+            const currentValues = {
+                title: note.title,
+                content: note.content,
+
+            };
+            
+            let formHTML = utils.generateDynamicForm(noteFields, `/notes/${note.noteId}`, 'PUT', currentValues)
+
             if (note) {
                 // Display the specific note
                 placeholders.content = `
@@ -73,6 +88,7 @@ exports.getNotes = async function (url, pathSegments, request, response) {
                         <p>${note.content}</p>
                         <p>${note.date} ${note.time}</p>
                     </div>
+                    ${formHTML}
                 `;
             } else {
                 // Note not found
@@ -115,7 +131,7 @@ exports.createNotes = async function (url, pathSegments, request, response) {
         noteData.time = currentDate.toTimeString().split(' ')[0];
 
         noteData.title = utils.sanitizeInput(params.get("title"));
-        noteData.content = utils.sanitizeInput(params.get("title"));
+        noteData.content = utils.sanitizeInput(params.get("content"));
 
         if (!noteData.title || !noteData.content) {
             response.writeHead(302, {"Location": "/previous-page?error=Bad Request: Missing required fields"});
@@ -141,30 +157,22 @@ exports.createNotes = async function (url, pathSegments, request, response) {
  * @param {http.ServerResponse} response - The HTTP response object.
  * @returns {Promise<void>} - A promise that resolves after updating the note and sending a response.
  */
-exports.updateNotes = async function (url, pathSegments, request, response) {
+exports.updateNotes = async function (url, pathSegments, request, response, noteId) {
     try {
-        const noteId = pathSegments[1]; // Use index 1 for the note ID
+        let rawData = await utils.getBody(request);
+        const updatedNoteData = JSON.parse(rawData); // Parse the raw body data as JSON
 
-        const requestBody = await utils.getBody(request);
-        const updatedNoteData = new URLSearchParams(requestBody);
-
-        const title = updatedNoteData.get("title");
-        const content = updatedNoteData.get("content");
+        const { title, content } = updatedNoteData; // Destructure the updated data
 
         if (!title || !content) {
             utils.statusCodeResponse(response, 400, "Bad Request: Missing required fields", "text/plain");
             return;
         }
 
-        // Construct the updated note object
-        const updatedNote = {
-            title: title,
-            content: content
-        };
+        // Assuming your utility function correctly updates the note by noteId
+        await utils.updateInDatabase("notes", { noteId }, { title, content });
 
-        await utils.updateInDatabase("notes", { noteId: noteId }, updatedNote);
-
-        utils.statusCodeResponse(response, 200, "Note updated successfully", "text/plain");
+        utils.statusCodeResponse(response, 200, "Note updated successfully", "application/json");
     } catch (error) {
         console.error("Error updating note:", error);
         utils.statusCodeResponse(response, 500, "Internal Server Error", "text/plain");

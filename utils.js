@@ -263,22 +263,23 @@ function decodeHtmlEntities(text) {
     return decodedText;
 }
 
-function generateDynamicForm(fields, path, method) {
-    let formHTML = `<form class="box" action="${path}" method="${method}">`;
+function generateDynamicForm(fields, path, method, currentValues = {}) {
+    let formHTML = `<form id="${method}" class="box" action="${path}" method="${method}">`;
 
     fields.forEach((field) => {
+        const currentValue = currentValues[field.name] || '';
         if (field.type === 'textarea') {
             formHTML += `
                 <div>
                     <label for="${field.name}">${field.label}</label><br>
-                    <textarea id="${field.name}" name="${field.name}" placeholder="${field.placeholder}"></textarea>
+                    <textarea id="${field.name}" name="${field.name}" placeholder="${field.placeholder}">${currentValue}</textarea>
                 </div>
             `;
         } else {
             formHTML += `
                 <div>
                     <label for="${field.name}">${field.label}</label><br>
-                    <input type="${field.type}" id="${field.name}" name="${field.name}" placeholder="${field.placeholder}">
+                    <input type="${field.type}" id="${field.name}" name="${field.name}" placeholder="${field.placeholder}" value="${currentValue}">
                 </div>
             `;
         }
@@ -288,7 +289,6 @@ function generateDynamicForm(fields, path, method) {
 
     return formHTML;
 }
-
 
 /**
  * Generates a list of routes as HTML list items.

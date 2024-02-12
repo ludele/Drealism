@@ -27,6 +27,7 @@ exports.handleRoute = async function (url, pathSegments, request, response) {
       try {
          const templatePlaceholders = {
             title: `${title}`,
+            script: ` `,
             nav: `${nav}`,
             content: `${content}`, 
          };
@@ -89,7 +90,8 @@ exports.handleRoute = async function (url, pathSegments, request, response) {
             noteHandler.getNotes(url, pathSegments, request, response);
          } else if (request.method === "POST") {
             noteHandler.createNotes(url, pathSegments, request, response);
-         }
+         } else if (pathSegments.length === 2 && request.method === "PUT")
+            noteHandler.updateNotes(url, pathSegments, request, response, pathSegments[1])
          break;
    }
 }
