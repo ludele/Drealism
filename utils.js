@@ -435,8 +435,8 @@ function toSessionCookie(sessionId, accountId) {
 function readSessionCookie(cookieString, response) {
 
     if (!cookieString) {
-        statusCodeResponse(response, 404, "Your browser does not have cookies enabled, required for login", "text/plain");
-        return null;
+        // If there are no cookies 
+        return "";
     }
     else {
         let keyValuePairs = cookieString.split(';');

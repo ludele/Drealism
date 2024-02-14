@@ -23,6 +23,7 @@ exports.handleUserRoute = async function (url, pathSegments, request, response) 
       return;
    }
 
+
    // sessionen har gått ut
    if (new Date() > session.expires) {
       db.collection('sessions').deleteOne({ uuid: session.uuid }); // kör denna i bakgrunden för att inte blockera resten av koden

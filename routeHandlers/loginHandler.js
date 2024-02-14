@@ -12,24 +12,27 @@ const routes = utils.routes;
 
 exports.getLogin = async function (url, pathSegments, request, response) {
    let db = await utils.connectToDatabase();
-   let cookie; 
-   cookie = utils.readSessionCookie(request.headers.cookie, response);
 
-   if (!cookie || typeof cookie.session === 'undefined' || typeof cookie.account === 'undefined') {
-      return;
+   let cookieHeader = request.headers.cookie;
+   let cookie;
+   if (cookieHeader) {
+     cookie = utils.readSessionCookie(cookieHeader, response);
    }
-
-   // Check if the cookies match a session in the database.
-   let session = await db.collection('sessions').findOne({
-      uuid: cookie.session,
-      account: cookie.account
-   });
-
-   // If the session exists, then the login page causes a logout.
-   if (session) {
-      handleLogout(url, pathSegments, request, response)
-      return;
-   } 
+   
+   // Proceed only if cookie is defined and has the necessary properties
+   if (cookie && cookie.session && cookie.account) {
+     // Check if the cookies match a session in the database.
+     var session = await db.collection('sessions').findOne({
+       uuid: cookie.session,
+       account: cookie.account
+     });
+   
+     // If the session exists, then the login page causes a logout.
+     if (session) {
+       handleLogout(url, pathSegments, request, response);
+       return;
+     }
+   }
    
    let title = "Drealism: Login page";
    let nav = `   <div class="header-box">

@@ -18,7 +18,7 @@ const routes = utils.routes;
 exports.getCategories = async function (url, pathSegments, request, response) {
     try {
         let db = await utils.connectToDatabase();
-        let cookie = utils.readSessionCookie(request.headers.cookie);
+        let cookie = utils.readSessionCookie(request.headers.cookie, response);
         let session = await db.collection('sessions').findOne({uuid: cookie.session});
 
         if (!session) {
