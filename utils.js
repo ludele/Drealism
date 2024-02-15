@@ -277,6 +277,21 @@ async function applyTemplate(templatePath, placeholders, response) {
     }
 }
 
+async function applyTemplateNoDecode(templatePath, placeholders, response) {
+    try {
+        let template = (await fs.readFile(templatePath)).toString();
+
+        let replacedTemplate = await replaceTemplatePlaceholders(template, placeholders);
+
+        statusCodeResponse(response, 200, replacedTemplate, "text/html");
+        return;
+    } catch (error) {
+        console.error("Error reading the template:", error);
+        statusCodeResponse(response, 500, "Internal Server Error", "text/plain");
+        return;
+    }
+}
+
 /**
  * Sanitizes input by replacing special characters.
  * @param {String} input The input string to be sanitized.
@@ -459,6 +474,7 @@ function readSessionCookie(cookieString, response) {
 }
 
 module.exports = {
+    applyTemplateNoDecode,
     createHash,
     compareHash,
     createSession,

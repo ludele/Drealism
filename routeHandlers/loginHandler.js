@@ -79,7 +79,7 @@ exports.postLogin = async function (url, pathSegments, request, response) {
 
    const results = await utils.retrieveFromDatabase('drealism', 'accounts', {
       $or: [
-          { username: searchParams.get('username') },
+          { username: utils.sanitizeInput(searchParams.get('username')) },
       ]
    });
 
@@ -184,8 +184,8 @@ exports.postRegister = async function (url, pathSegments, request, response) {
 
    let account = {
       uuid: crypto.randomUUID(),
-      username: searchParams.get('username'),
-      name: searchParams.get('name'),
+      username: utils.sanitizeInput(searchParams.get('username')),
+      name: utils.sanitizeInput(searchParams.get('name')),
       password: passwordHash
    };
 

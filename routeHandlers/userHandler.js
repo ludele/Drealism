@@ -10,7 +10,6 @@ exports.handleUserRoute = async function (url, pathSegments, request, response) 
       return;
    }
 
-
    let session = await db.collection('sessions').findOne({
       uuid: cookie.session,
       account: cookie.account
@@ -22,7 +21,6 @@ exports.handleUserRoute = async function (url, pathSegments, request, response) 
       response.end();
       return;
    }
-
 
    // sessionen har gått ut
    if (new Date() > session.expires) {
@@ -60,7 +58,7 @@ exports.handleUserRoute = async function (url, pathSegments, request, response) 
             content: `${content}`, 
          };
 
-         await utils.applyTemplate(templatePath, templatePlaceholders, response);
+         await utils.applyTemplateNoDecode(templatePath, templatePlaceholders, response);
 
          return;
       } catch (error) {

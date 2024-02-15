@@ -11,3 +11,9 @@ function resizeTextarea() {
 // Resize textarea initially and on input changes
 resizeTextarea();
 textarea.addEventListener('input', resizeTextarea);
+
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});

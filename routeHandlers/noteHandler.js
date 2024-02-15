@@ -165,7 +165,10 @@ exports.createNotes = async function (url, pathSegments, request, response) {
 
         await utils.saveToDatabase("notes", noteData);
 
-        utils.statusCodeResponse(response, 201, "Note created successfully", "text/plain");
+        // utils.statusCodeResponse(response, 201, "Note created successfully", "text/plain");
+        response.writeHead(302, { "Location": `/notes/` });
+        response.end();
+        return;
     } catch (error) {
         console.error("Error creating note:", error);
         utils.statusCodeResponse(response, 500, "Internal Server Error", "text/plain");
@@ -221,8 +224,7 @@ exports.deleteNotes = async function (url, pathSegments, request, response, note
     try {
         await utils.removeFromDatabase("notes", { noteId: noteId });
 
-        response.writeHead(302, { "Location": "/notes" });
-        response.end();
+        utils.statusCodeResponse(response, 200, "200 OK", "text/plain")
         return;
     } catch (error) {
         console.error("Error deleting note:", error);
